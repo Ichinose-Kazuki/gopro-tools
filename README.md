@@ -18,7 +18,7 @@ GoPro で撮影した MP4 動画を、GoPro 特有のメタデータを維持し
 ffmpeg は、Stream #0:2 から Stream #0:4 について、非対応のコーデックだという警告を出す。
 `ffmpeg -i input.MP4 -vcodec libx264 -crf 28 output.MP4` とすると、Stream mapping: でこれらは無視される。
 `ffprobe output.MP4` をすると、
-- Stream #0:2[0x3](eng): Data: none (tmcd / 0x64636D74), 0 kb/s の handler_name が GoPro AVC に変わっている
+- Stream #0:2[\0x3\](eng): Data: none (tmcd / 0x64636D74), 0 kb/s の handler_name が GoPro AVC に変わっている
     
 
 `ffprobe GH010057.MP4` の出力
