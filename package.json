@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "gopro-telemetry": "^1.2.11"
+  }
+}

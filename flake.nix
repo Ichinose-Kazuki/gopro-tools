@@ -20,7 +20,23 @@
             mediainfo
             # EXIF meta 情報の読み書き
             exiftool
+            # Tools to access files in the camera
+            libmtp
+            jmtpfs
+            # For nodejs tools
+            nodePackages_latest.nodejs
           ];
+
+          shellHook = ''
+            # node_modules がなければ npm ci 実行（package-lock.json 必須）
+            if [ ! -d node_modules ] && [ -f package-lock.json ]; then
+              echo "Installing npm dependencies with npm ci..."
+              npm ci --cache $NIX_BUILD_TOP/.npm-cache
+            fi
+
+            # PATH にローカルの node_modules/.bin を追加
+            export PATH=$PWD/node_modules/.bin:$PATH
+          '';
         };
       }
     );
