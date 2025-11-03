@@ -28,6 +28,7 @@
           ];
 
           shellHook = ''
+            # gopro-telemetry and gpmf-extract
             # node_modules がなければ npm ci 実行（package-lock.json 必須）
             if [ ! -d node_modules ] && [ -f package-lock.json ]; then
               echo "Installing npm dependencies with npm ci..."
