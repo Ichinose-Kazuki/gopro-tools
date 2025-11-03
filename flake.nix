@@ -25,7 +25,14 @@
             jmtpfs
             # For nodejs tools
             nodePackages_latest.nodejs
+            # For gopro-dashboard-overlay
+            uv
+            roboto
+            python312
+            python312Packages.pycairo
           ];
+
+          UV_PYTHON_DOWNLOADS = "never";
 
           shellHook = ''
             # gopro-telemetry and gpmf-extract
@@ -37,6 +44,10 @@
 
             # PATH にローカルの node_modules/.bin を追加
             export PATH=$PWD/node_modules/.bin:$PATH
+
+            # gopro-dashboard-overlay
+            uv sync
+            source $PWD/.venv/bin/activate
           '';
         };
       }
