@@ -5,15 +5,15 @@
 ## 使い方
 - ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
   ```shell
-  .venv/bin/gopro-rename.py --yes --dirs videos [ディレクトリへのパス]
+  .venv/bin/gopro-rename.py --yes --dirs [ディレクトリへのパス]
   ```
 - ディレクトリの中の全 MP4 ファイルを圧縮
   ```shell
-  bash compress.sh [ディレクトリへのパス]
+  bash bin/compress.sh [ディレクトリへのパス]
   ```
 - GPS 情報を重ねて表示した動画を元動画と同じディレクトリに作成
   ```shell
-  bash make-dashboard.sh [動画ファイルへのパス]
+  bash bin/make-dashboard.sh [動画ファイルへのパス]
   ```
 
 ## 圧縮率
@@ -27,6 +27,6 @@
   - 引数: https://github.com/time4tea/gopro-dashboard-overlay/tree/main/docs/bin
   - 実行例
     ```shell
-    .venv/bin/gopro-dashboard.py --gpx output.gpx --use-gpx-only --layout-xml layout-1920x1080.xml --units-speed kph --units-altitude meter --units-distance meter videos/output_normal.mp4 output-dashboard.mp4
+    .venv/bin/gopro-dashboard.py --gpx output.gpx --use-gpx-only --layout-xml dashboard/layout-1920x1080.xml --units-speed kph --units-altitude meter --units-distance meter videos/video-compressed.MP4 video-compressed-dashboard.MP4
     ```
 
