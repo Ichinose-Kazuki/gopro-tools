@@ -16,6 +16,9 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo "--- ディレクトリ '$TARGET_DIR' 内の .MP4 ファイルを処理します ---"
 
 # 3. .MP4 ファイルのループ処理
@@ -34,8 +37,8 @@ for file in "$TARGET_DIR"/*.MP4; do
         ffmpeg -i "${TARGET_DIR}/$file" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-compressed.MP4"
 
         # Extract metadata
-        node extract_json.js "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
-        node extract_gpx.js "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
+        node "${PARENT_DIR}/extract_json.js" "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
+        node "${PARENT_DIR}/extract_gpx.js" "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
 
         # DELETE the original file
         rm "${TARGET_DIR}/$file"

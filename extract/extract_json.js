@@ -2,7 +2,7 @@ const gpmfExtract = require('gpmf-extract');
 const goproTelemetry = require(`gopro-telemetry`);
 const fs = require('fs');
 
-// Removing these doesn't make much difference in output file size
+// Not much difference in output file size, disabled
 // const keysInGPX = ['GPS5', 'GPS9'];
 
 const args = process.argv.slice(2);
