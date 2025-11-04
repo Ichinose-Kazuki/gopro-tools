@@ -9,7 +9,7 @@ if [ -z "$1" ]; then
 fi
 
 VIDEO_PATH="$1"
-VIDEO_PATH_NO_EXT="${$VIDEO_PATH%.*}"
+VIDEO_PATH_NO_EXT="${VIDEO_PATH%.*}"
 
 # 2. ファイルの存在と有効性を確認
 # -f は指定されたパスが通常ファイルであることをチェックします

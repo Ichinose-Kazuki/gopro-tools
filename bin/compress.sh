@@ -16,32 +16,34 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
+TARGET_DIR_SAFE="$( cd "${TARGET_DIR}" && pwd )"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo "--- ディレクトリ '$TARGET_DIR' 内の .MP4 ファイルを処理します ---"
+echo "--- ディレクトリ '$TARGET_DIR_SAFE' 内の .MP4 ファイルを処理します ---"
 
 # 3. .MP4 ファイルのループ処理
-# $TARGET_DIR/*.MP4 で指定ディレクトリ直下の .MP4 ファイルを検索
+# $TARGET_DIR_SAFE/*.MP4 で指定ディレクトリ直下の .MP4 ファイルを検索
 # スペースを含むファイル名も適切に処理するためにクォート ("...") を使用
-for file in "$TARGET_DIR"/*.MP4; do
+for file_fullpath in "$TARGET_DIR_SAFE"/*.MP4; do
     # 4. ファイルの存在確認 (マッチするファイルがない場合に glob がそのままの文字列として残るのを防ぐ)
-    if [ -f "$file" ]; then
-        echo "処理対象ファイル: $file"
+    if [ -f "$file_fullpath" ]; then
+        echo "処理対象ファイル: $file_fullpath"
 
-        FILE_NO_EXT="${$file%.*}"
+        FILE=$(basename $file_fullpath)
+        FILE_NO_EXT="${FILE%.*}"
 
-        mkdir "$FILE_NO_EXT"
+        mkdir "${TARGET_DIR_SAFE}/${FILE_NO_EXT}"
 
         # Trying to remove tmcd stream, but fails possibly due to ffmpeg's bug
-        ffmpeg -i "${TARGET_DIR}/$file" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-compressed.MP4"
+        ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-compressed.MP4"
 
         # Extract metadata
-        node "${PARENT_DIR}/extract_json.js" "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
-        node "${PARENT_DIR}/extract_gpx.js" "${TARGET_DIR}/$file" "${TARGET_DIR}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
+        node "${PARENT_DIR}/extract/extract_json.js" "${TARGET_DIR_SAFE}/${FILE}" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
+        node "${PARENT_DIR}/extract/extract_gpx.js" "${TARGET_DIR_SAFE}/${FILE}" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
 
         # DELETE the original file
-        rm "${TARGET_DIR}/$file"
+        rm "${TARGET_DIR_SAFE}/${FILE}"
     fi
 done
 
