@@ -30,3 +30,20 @@
     .venv/bin/gopro-dashboard.py --gpx output.gpx --use-gpx-only --layout-xml dashboard/layout-1920x1080.xml --units-speed kph --units-altitude meter --units-distance meter videos/video-compressed.MP4 video-compressed-dashboard.MP4
     ```
 
+## GoPro から動画を取り込む方法
+1. GoPro を USB で接続する
+2. GoPro の電源を入れる
+   - ここで `lsusb` すると GoPro HERO9 などの名前でデバイスが認識されているはず
+3. GoPro9 は、USB 接続モードを MTP にする
+   - [GoPro Support](https://community.gopro.com/s/article/GoPro-Quik-Wired-Camera-Connection?language=ja)
+4. `sudo mtp-detect` が成功すれば接続完了
+5. 適当なディレクトリを作って `sudo jmtpfs [dirName] -o allow_other` でマウントすると、通常ユーザーで動画ファイルにアクセスできるようになる
+   - DCIM/100GOPRO の中には 3 種類のファイルが入っている。MP4 だけコピーすればいい。
+   - 写真を撮ったときは JPG も忘れずに！
+6. 動画のコピーが終わったら `sudo umount [dirName]` でアンマウント
+
+| ファイル形式 | 用途 | 解像度/サイズ | 特徴 |
+| --- | --- | --- | --- |
+| MP4 | 高品質な映像保存 | 高解像度、大容量 | 編集・共有向け、高い互換性 |
+| LRV | プレビュー・クイック編集用 | 240p、小容量 | 操作負荷軽減、拡張子変更で再生可能 |
+| THM | サムネイル表示 | 160x120ピクセル | 動画識別用、小さな画像 |
