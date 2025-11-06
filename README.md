@@ -4,6 +4,8 @@
 
 ## 使い方
 - ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
+  [issue のコメント](https://github.com/time4tea/gopro-dashboard-overlay/issues/117#issuecomment-1464979791) によれば、録画ボタンを押して起動したときは `GPS never locked` エラーになる。たしかに ffprobe で見たときに `creation_time` の日時が明らかに撮影日時と異なる。
+  rename はしないほうがよさそう。
   ```shell
   .venv/bin/gopro-rename.py --yes --dirs [ディレクトリへのパス]
   ```
