@@ -33,16 +33,21 @@ for file_fullpath in "$TARGET_DIR_SAFE"/*.MP4; do
         FILE=$(basename $file_fullpath)
         FILE_NO_EXT="${FILE%.*}"
 
-        mkdir "${TARGET_DIR_SAFE}/${FILE_NO_EXT}"
+        mkdir -p "${TARGET_DIR_SAFE}/${FILE_NO_EXT}"
 
         # Trying to remove tmcd stream, but fails possibly due to ffmpeg's bug
         ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-compressed.MP4"
 
-        # Extract metadata
-        node "${PARENT_DIR}/extract/extract_json.js" "${TARGET_DIR_SAFE}/${FILE}" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
-        node "${PARENT_DIR}/extract/extract_gpx.js" "${TARGET_DIR_SAFE}/${FILE}" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
+        # workaround for videos > 2 GiB: https://github.com/JuanIrache/gopro-telemetry/issues/63#issuecomment-577925017
+        # this doesn't work: https://github.com/ZainUlMustafa/GoPro-Telemetry-Tests/blob/main/TelemetryTests/alt_index.js
+        ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -vf scale=320:-1 -map 0:0 -map 0:1 -map 0:3 -codec:v mpeg2video -codec:d copy -codec:a copy -y "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4"
 
-        # DELETE the original file
+        # Extract metadata
+        node "${PARENT_DIR}/extract/extract_json.js" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
+        node "${PARENT_DIR}/extract/extract_gpx.js" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
+
+        # DELETE the small file and the original file
+        rm "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4"
         rm "${TARGET_DIR_SAFE}/${FILE}"
     fi
 done

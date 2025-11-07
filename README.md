@@ -10,6 +10,7 @@
   .venv/bin/gopro-rename.py --yes --dirs [ディレクトリへのパス]
   ```
 - ディレクトリの中の全 MP4 ファイルを圧縮
+  ffmpeg で圧縮しても gpmd は維持されるが、メタデータが取れなかったりする。creation_time だけは復元できたが、dashboard を作ったときに速度表示がおかしくなった。しかたないので gopro-telemetry を使って gpx とその他メタデータを分離する方針とする。
   ```shell
   bash bin/compress.sh [ディレクトリへのパス]
   ```
@@ -49,3 +50,6 @@
 | MP4 | 高品質な映像保存 | 高解像度、大容量 | 編集・共有向け、高い互換性 |
 | LRV | プレビュー・クイック編集用 | 240p、小容量 | 操作負荷軽減、拡張子変更で再生可能 |
 | THM | サムネイル表示 | 160x120ピクセル | 動画識別用、小さな画像 |
+
+## GoPro's MP4 Structure
+Telemetry carrying MP4 files will have a minimum of four tracks: Video, audio, timecode and telemetry (GPMF). A fifth track ('SOS') is used in file recovery in HERO4 and HERO5, can be ignored.

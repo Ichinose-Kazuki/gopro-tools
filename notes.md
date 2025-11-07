@@ -17,7 +17,11 @@ ffmpeg は、Stream #0:2 から Stream #0:4 について、非対応のコーデ
 `ffmpeg -i input.MP4 -vcodec libx264 -crf 28 output.MP4` とすると、Stream mapping: でこれらは無視される。
 `ffprobe output.MP4` をすると、
 - Stream #0:2\[0x3\](eng): Data: none (tmcd / 0x64636D74), 0 kb/s の handler_name が GoPro AVC に変わっている
+  - tmcd は諦めるしかなさそう (https://stackoverflow.com/questions/51354696/ffmpeg-concat-and-preserve-metadata-streams)
 - これは ffmpeg のバグ？ ffmpeg は GitHub でホストされていないので、Issue を出すことができない。メールを送るのかな？
+
+Side data:
+        displaymatrix: rotation of -180.00 degrees も残らないが、これは -noautorotate をつけることで残るようになる。ただ、つけずに rotate してもらったほうが楽かも。
     
 
 `ffprobe GH010057.MP4` の出力
