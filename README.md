@@ -11,9 +11,9 @@
   ```shell
   bash bin/compress.sh [ディレクトリへのパス]
   ```
-- GPS 情報を重ねて表示した動画を元動画と同じディレクトリに作成
+- ディレクトリ内の動画に gpx ファイルの情報を重ねた動画をそのディレクトリ内に作成
   ```shell
-  bash bin/make-dashboard.sh [動画ファイルへのパス]
+  bash bin/make-dashboard.sh [ディレクトリへのパス]
   ```
 
 ## 圧縮率
