@@ -4,17 +4,24 @@
 
 ## 使い方
 - ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
+  
   [issue のコメント](https://github.com/time4tea/gopro-dashboard-overlay/issues/117#issuecomment-1464979791) によれば、録画ボタンを押して起動したときは `GPS never locked` エラーになる。たしかに ffprobe で見たときに `creation_time` の日時が明らかに撮影日時と異なる。
   rename はしないほうがよさそう。
+  
   ```shell
   .venv/bin/gopro-rename.py --yes --dirs [ディレクトリへのパス]
   ```
 - ディレクトリの中の全 MP4 ファイルを圧縮
+  
   ffmpeg で圧縮しても gpmd は維持されるが、メタデータが取れなかったりする。creation_time だけは復元できたが、dashboard を作ったときに速度表示がおかしくなった。しかたないので gopro-telemetry を使って gpx とその他メタデータを分離する方針とする。
+  
   ```shell
   bash bin/compress.sh [ディレクトリへのパス]
   ```
 - ディレクトリ内の動画に gpx ファイルの情報を重ねた動画をそのディレクトリ内に作成
+
+  GPS5 の値が全く変わらない動画があることがある。撮影方法に問題があるのかは謎。gpx ファイルの抽出に問題があるわけではなくて、動画内のメタデータの値に変化がないということは公式の [gpmf-parser](https://github.com/gopro/gpmf-parser/tree/main) を使って確認済み。
+
   ```shell
   bash bin/make-dashboard.sh [ディレクトリへのパス]
   ```
