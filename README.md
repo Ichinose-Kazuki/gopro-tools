@@ -25,6 +25,8 @@
 - ディレクトリの中の全 MP4 ファイルを圧縮
   
   ffmpeg で圧縮しても gpmd は維持されるが、メタデータが取れなかったりする。creation_time だけは復元できたが、dashboard を作ったときに速度表示がおかしくなった。しかたないので gopro-telemetry を使って gpx とその他メタデータを分離する方針とする。
+
+  exported ディレクトリの一個上で実行する。
   
   ```shell
   bash bin/compress.sh [ディレクトリへのパス]
