@@ -2,6 +2,23 @@
 
 set -eux
 
+# エラー/終了時のクリーンアップ
+CURRENT_DIR=""
+cleanup() {
+    # 作成ディレクトリを削除（中身があれば強制削除）
+    if [ -n "${CURRENT_DIR:-}" ] && [ -d "${CURRENT_DIR}" ]; then
+        rm -rf "${CURRENT_DIR}"
+    fi
+}
+on_exit() {
+    status=$?
+    if [ $status -ne 0 ]; then
+        cleanup
+    fi
+    exit $status
+}
+trap 'on_exit' EXIT
+
 # 1. ディレクトリ引数の確認
 if [ -z "$1" ]; then
     echo "使用法: $0 <処理対象のディレクトリ>"
@@ -32,25 +49,32 @@ for file_fullpath in "$TARGET_DIR_SAFE"/*.MP4; do
 
         FILE=$(basename $file_fullpath)
         FILE_NO_EXT="${FILE%.*}"
+        CURRENT_DIR="${TARGET_DIR_SAFE}/${FILE_NO_EXT}"
 
-        mkdir -p "${TARGET_DIR_SAFE}/${FILE_NO_EXT}"
+        mkdir -p "${CURRENT_DIR}"
 
+        # Compress video in exported directory
         # Trying to remove tmcd stream, but fails possibly due to ffmpeg's bug
-        ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-compressed.MP4"
+        ffmpeg -i "${TARGET_DIR_SAFE}/exported/${FILE_NO_EXT}.mp4" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${CURRENT_DIR}/${FILE_NO_EXT}-compressed.MP4"
 
         # workaround for videos > 2 GiB: https://github.com/JuanIrache/gopro-telemetry/issues/63#issuecomment-577925017
         # this doesn't work: https://github.com/ZainUlMustafa/GoPro-Telemetry-Tests/blob/main/TelemetryTests/alt_index.js
-        ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -vf scale=320:-1 -map 0:0 -map 0:1 -map 0:3 -codec:v mpeg2video -codec:d copy -codec:a copy -y "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4"
+        ffmpeg -i "${TARGET_DIR_SAFE}/${FILE}" -vf scale=320:-1 -map 0:0 -map 0:1 -map 0:3 -codec:v mpeg2video -codec:d copy -codec:a copy -y "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4"
 
         # Extract metadata
-        node "${PARENT_DIR}/extract/extract_json.js" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-metadata.json"
-        node "${PARENT_DIR}/extract/extract_gpx.js" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4" "${TARGET_DIR_SAFE}/${FILE_NO_EXT}/${FILE_NO_EXT}-GPS5.gpx"
+        node "${PARENT_DIR}/extract/extract_json.js" "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4" "${CURRENT_DIR}/${FILE_NO_EXT}-metadata.json"
+        node "${PARENT_DIR}/extract/extract_gpx.js" "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4" "${CURRENT_DIR}/${FILE_NO_EXT}-GPS5.gpx"
 
-        # DELETE the small file and the original file
-        rm "${TARGET_DIR_SAFE}/${FILE_NO_EXT}-small.MP4"
+        # DELETE the exported file, the small file and the original file
+        rm "${TARGET_DIR_SAFE}/exported/${FILE_NO_EXT}.mp4"
+        rm "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4"
         rm "${TARGET_DIR_SAFE}/${FILE}"
+
+        CURRENT_DIR=""
     fi
 done
+
+rm -r "${TARGET_DIR_SAFE}/exported"
 
 echo "--- 処理が完了しました ---"
 
