@@ -23,6 +23,8 @@ PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "--- '$VIDEO_DIR' を処理します ---"
 
-"${PARENT_DIR}/.venv/bin/gopro-dashboard.py" --gpx "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-GPS5.gpx" --use-gpx-only --layout-xml "${PARENT_DIR}/dashboard/layout-1920x1080.xml" --units-speed kph --units-altitude meter --units-distance meter "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-compressed.MP4" "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-dashboard.MP4"
+WxH="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-compressed.MP4")"
+
+"${PARENT_DIR}/.venv/bin/gopro-dashboard.py" --gpx "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-GPS5.gpx" --use-gpx-only --layout-xml "${PARENT_DIR}/dashboard/layout-${WxH}.xml" --units-speed kph --units-altitude meter --units-distance meter "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-compressed.MP4" "${VIDEO_DIR_SAFE}/${VIDEO_DIR_BASENAME}-dashboard.MP4"
 
 echo "--- 処理が完了しました ---"

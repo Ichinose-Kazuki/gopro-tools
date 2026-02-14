@@ -4,19 +4,22 @@
     - メタデータが失われる
     - 圧縮品質の設定がほとんどできない
     - 手ぶれ補正がかかった状態の動画がエクスポートされる
-      - ここのアルゴリズムは多分公式のが一番強い
+      - 手ブレ補正は公式のを使うべき
   - したがって、一括エクスポートとは別にメタデータ抽出と圧縮もしたほうがよさそう
 - GoPro で撮影した MP4 動画を、GoPro 特有のメタデータを維持しながら圧縮する。
 - GPS 情報を重ねた動画を作成する。
 
 ## 使い方
+- GoPro HERO 13 を想定
 - （Windows）GoPro Player でとりあえず exported という名前のフォルダにエクスポートする
   -　コーデックは HEVC
-  - 解像度は 1920x1080
+  - 解像度最大
   - ビットレートは最大にする
   - HyperSmooth Pro を有効にする
-    - 設定はとりあえずデフォルト（滑らかさ: 50, トリミング速度: 50, レンズ補正: 0, アスペクト比: 既定値）
-- ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
+    - 設定はとりあえずデフォルト（滑らかさ: 50, トリミング速度: 50, レンズ補正: 0）
+    - アスペクト比だけ 1:1 に修正する
+- 以下 Linux
+- （これはやらない）ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
   
   [issue のコメント](https://github.com/time4tea/gopro-dashboard-overlay/issues/117#issuecomment-1464979791) によれば、録画ボタンを押して起動したときは `GPS never locked` エラーになる。たしかに ffprobe で見たときに `creation_time` の日時が明らかに撮影日時と異なる。
   rename はしないほうがよさそう。
@@ -29,10 +32,19 @@
   ffmpeg で圧縮しても gpmd は維持されるが、メタデータが取れなかったりする。creation_time だけは復元できたが、dashboard を作ったときに速度表示がおかしくなった。しかたないので gopro-telemetry を使って gpx とその他メタデータを分離する方針とする。
 
   exported ディレクトリの一個上で実行する。
+
+  動画サイズは横幅 1920 になる。
   
   ```shell
   bash bin/compress.sh [ディレクトリへのパス]
   ```
+
+  metadata ファイルの中に出てくるキー一覧
+
+  ```
+  """streams""ACCL""samples""value""cts""date""TZ""sticky""temperature °C""name""Accelerometer""units""m/s²""GYRO""Gyroscope""rad/s""SHUT""Exposure time (shutter speed)""s""WBAL""White Balance temperature (Kelvin)""WRGB""White Balance RGB gains""ISOE""Sensor ISO""YAVG""Average luminance""UNIF""Image uniformity""SCEN""Scene classification  | CLASSIFIER (snowurbanindoorwatervegetationbeach)""prob""HUES""Predominant hue  | hue ()""weight""GPS""altitude system""MSLV""GPS (Lat Long Alt D D days secs DOP fix)""deg""m""m/s""CORI""CameraOrientation""IORI""ImageOrientation""GRAV""Gravity Vector""WNDM""Wind Processingwind_enable meter_value(  )""MWET""Microphone Wetmic_wet all_mics confidence""AALP""AGC audio levelrms_level peak_level""dBFS""MSKP""MRV Frame Skip""LSKP""LRVO""LRVS""LRV Frame Skip""CSCM""Compression Score Main""FACE""Face Coordinates and details (verconfidence %xywhsmile % blink %)""subStreamName""ID""LOGS"null"device name""HERO Black""frames/second"% 
+  ```
+
 - ディレクトリ内の動画に gpx ファイルの情報を重ねた動画をそのディレクトリ内に作成
 
   GPS5 の値が全く変わらない動画があることがある。撮影方法に問題があるのかは謎。gpx ファイルの抽出に問題があるわけではなくて、動画内のメタデータの値に変化がないということは公式の [gpmf-parser](https://github.com/gopro/gpmf-parser/tree/main) を使って確認済み。
@@ -42,8 +54,16 @@
   
   gopro-rename のところで書いたことも合わせると、電源オフ状態から録画ボタンを押して起動 & 録画開始したときは、GPS がロックされず、位置情報が得られないということっぽい。
 
+  GPS がロックされている動画全部に対して実行
+
   ```shell
-  bash bin/make-dashboard.sh [ディレクトリへのパス]
+  python bin/make-dashboard-all.py [ディレクトリへのパス]
+  ```
+
+  または一つの動画のみに対して実行
+
+  ```shell
+  bash bin/make-dashboard.sh [動画個別ディレクトリへのパス]
   ```
 
 ## 圧縮率

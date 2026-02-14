@@ -55,7 +55,7 @@ for file_fullpath in "$TARGET_DIR_SAFE"/*.MP4; do
 
         # Compress video in exported directory
         # Trying to remove tmcd stream, but fails possibly due to ffmpeg's bug
-        ffmpeg -i "${TARGET_DIR_SAFE}/exported/${FILE_NO_EXT}.mp4" -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${CURRENT_DIR}/${FILE_NO_EXT}-compressed.MP4"
+        ffmpeg -i "${TARGET_DIR_SAFE}/exported/${FILE_NO_EXT}.mp4" -vf scale=1920:-1 -map 0:v:m:vendor_id -map 0:a -c:v:m:vendor_id libx265 -crf 23 -c:a copy "${CURRENT_DIR}/${FILE_NO_EXT}-compressed.MP4"
 
         # workaround for videos > 2 GiB: https://github.com/JuanIrache/gopro-telemetry/issues/63#issuecomment-577925017
         # this doesn't work: https://github.com/ZainUlMustafa/GoPro-Telemetry-Tests/blob/main/TelemetryTests/alt_index.js
