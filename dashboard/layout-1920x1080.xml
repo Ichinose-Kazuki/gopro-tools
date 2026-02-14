@@ -1,5 +1,5 @@
 <layout>
-    <composite x="260" y="30" name="date_and_time">
+    <composite x="165" y="30" name="date_and_time">
         <component type="datetime" x="0" y="0" format="%Y/%m/%d" size="16" align="right"/>
         <component type="datetime" x="0" y="24" format="%H:%M:%S.%f" truncate="5" size="32" align="right"/>
     </composite>
