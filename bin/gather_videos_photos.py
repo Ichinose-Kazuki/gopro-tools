@@ -41,7 +41,7 @@ def main():
                 continue
 
             try:
-                # copy2 を使っても OS 管理の作成・変更・アクセス日時しかコピーされないのであんまり意味ない。Google Photos が見てるのは exiftool 用語で Create Date か Modify Date っぽい。
+                # copy2 を使っても OS 管理の作成・変更・アクセス日時しかコピーされないのであんまり意味ない。Google Photos が見てるのは exiftool 用語で Create Date か Modify Date っぽい。JPG 画像の場合はなぜか Create Date 等もコピーされる。
                 shutil.copy2(file_path, target_path)
                 print(f"Copied: {file_path.name}")
                 count += 1

@@ -66,6 +66,20 @@
   bash bin/make-dashboard.sh [動画個別ディレクトリへのパス]
   ```
 
+- Google Photos に保存する動画・画像を集める
+
+  ```shell
+  python bin/gather_videos_photos.py [ディレクトリへのパス]
+  ```
+
+- 動画の作成日時等を修正
+
+  TOOD: 写真についてもやる。電源オフ状態から撮影ボタンを押して撮影されたと思われる写真は Create Date 等がデフォルト値だった。
+
+  ```shell
+  python bin/set_date.py [ディレクトリへのパス]
+  ```
+
 ## 圧縮率
 - 元動画: 144M
 - 圧縮後動画: 27M
