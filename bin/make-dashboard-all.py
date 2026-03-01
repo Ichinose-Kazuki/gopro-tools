@@ -4,42 +4,57 @@ import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-def has_valid_coordinates(gpx_path):
+def should_process_gpx(gpx_path):
     """
-    GPXファイルを解析し、(0, 0) 以外の有効な座標が含まれているか確認する
+    GPXファイルをチェックし、実行条件を満たすか判定する。
+    実行しない条件:
+    1. 最初の点が (0, 0)
+    2. 最初の100個のデータに変化がない
     """
     try:
-        # XMLとしてパース
         tree = ET.parse(gpx_path)
         root = tree.getroot()
         
-        # 名前空間を気にせず、すべての要素を再帰的に走査
+        points = []
+        max_check = 100
+        
+        # XMLから lat, lon を持つ要素を最大100個抽出
         for element in root.iter():
-            # lat, lon 属性を持っているか確認
             if 'lat' in element.attrib and 'lon' in element.attrib:
                 try:
                     lat = float(element.attrib['lat'])
                     lon = float(element.attrib['lon'])
+                    points.append((lat, lon))
                     
-                    # latとlonが両方とも0でなければ有効とみなす
-                    # (GoPro等はGPSロック前に 0.0, 0.0 を記録することがあるため)
-                    # この判定方法は正しくないことがある。ちゃんと判定するためのメタデータが抽出できていないので、とりあえずこれでいいとする。
-                    if lat != 0.0 or lon != 0.0:
-                        return True
-                    if lat == 0.0 or lon == 0.0:
-                        return False
+                    if len(points) >= max_check:
+                        break
                 except ValueError:
                     continue
-                    
-        return False
+        
+        # データが空の場合はスキップ
+        if not points:
+            return False, "No data points found"
+
+        # 以下の条件で GPS がロックされていない動画をすべて弾けるかわからないが、GPS のロック状態のメタデータが取得できていないので完璧な確認は諦める
+        # 条件(1): 最初の lat, lon の値が 0, 0 である
+        first_lat, first_lon = points[0]
+        if first_lat == 0.0 and first_lon == 0.0:
+            return False, "Starts with (0.0, 0.0)"
+
+        # 条件(2): 100個（またはそれ以下）見て、全く変化がない
+        # set() を使って重複を排除し、要素数が1なら変化なしとみなす
+        if len(set(points)) == 1:
+            return False, f"No movement detected in first {len(points)} points"
+
+        # 条件をクリアした場合
+        return True, "Valid GPS data"
+
     except Exception as e:
-        print(f"Error reading {gpx_path}: {e}", file=sys.stderr)
-        return False
+        return False, f"Error reading GPX: {e}"
 
 def main():
-    # 引数チェック
     if len(sys.argv) < 2:
-        print("Usage: python process_dirs.py <base_directory>")
+        print("Usage: python process_dirs_strict.py <base_directory>")
         sys.exit(1)
 
     base_dir = Path(sys.argv[1])
@@ -48,32 +63,30 @@ def main():
         print(f"Error: Directory '{base_dir}' not found.")
         sys.exit(1)
 
-    # ベースディレクトリ内のアイテムを走査
     for item in base_dir.iterdir():
         if item.is_dir():
-            # ディレクトリ内で .gpx ファイルを探す
             gpx_files = list(item.glob('*.gpx'))
             
             if not gpx_files:
                 continue
 
-            # 最初に見つかったGPXファイルを使用（構造上1つと仮定）
             gpx_file = gpx_files[0]
             
-            # 有効な座標があるかチェック
-            if has_valid_coordinates(gpx_file):
+            # 条件判定
+            should_run, reason = should_process_gpx(gpx_file)
+            
+            if should_run:
                 target_dir = str(item)
+                # bin/make-dashboard.sh は実行場所からの相対パスと仮定
                 command = ["bash", "bin/make-dashboard.sh", target_dir]
                 
-                print(f"Valid GPS found in {item.name}. Executing: {' '.join(command)}")
-                
-                # コマンド実行
+                print(f"[EXEC] {item.name}: {reason}")
                 try:
                     subprocess.run(command, check=True)
                 except subprocess.CalledProcessError as e:
                     print(f"Command failed for {target_dir}: {e}", file=sys.stderr)
             else:
-                print(f"Skipping {item.name} (GPS data implies 0,0 or invalid)")
+                print(f"[SKIP] {item.name}: {reason}")
 
 if __name__ == "__main__":
     main()

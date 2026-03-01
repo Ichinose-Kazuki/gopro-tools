@@ -65,10 +65,8 @@ for file_fullpath in "$TARGET_DIR_SAFE"/*.MP4; do
         node "${PARENT_DIR}/extract/extract_json.js" "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4" "${CURRENT_DIR}/${FILE_NO_EXT}-metadata.json"
         node "${PARENT_DIR}/extract/extract_gpx.js" "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4" "${CURRENT_DIR}/${FILE_NO_EXT}-GPS5.gpx"
 
-        # DELETE the exported file, the small file and the original file
-        rm "${TARGET_DIR_SAFE}/exported/${FILE_NO_EXT}.mp4"
+        # DELETE the small file
         rm "${CURRENT_DIR}/${FILE_NO_EXT}-small.MP4"
-        rm "${TARGET_DIR_SAFE}/${FILE}"
 
         CURRENT_DIR=""
     fi

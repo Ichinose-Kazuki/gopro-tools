@@ -26,7 +26,7 @@ def main():
     # base_dir 以下を再帰的に検索
     # rglob('*') で全ファイルを走査し、拡張子でフィルタリング
     for file_path in base_dir.rglob('*'):
-        
+
         # ファイルでない、または保存先ディレクトリ内のファイルはスキップ
         if not file_path.is_file() or dest_dir in file_path.parents:
             continue
@@ -41,7 +41,7 @@ def main():
                 continue
 
             try:
-                # copy2 を使うことでメタデータ（作成日時など）を保持してコピー
+                # copy2 を使っても OS 管理の作成・変更・アクセス日時しかコピーされないのであんまり意味ない。Google Photos が見てるのは exiftool 用語で Create Date か Modify Date っぽい。
                 shutil.copy2(file_path, target_path)
                 print(f"Copied: {file_path.name}")
                 count += 1
