@@ -1,0 +1,3 @@
+(library
+ (name gopro)
+ (libraries unix cmdliner xmlm))

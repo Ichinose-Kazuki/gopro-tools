@@ -30,6 +30,13 @@
             roboto
             python312
             python312Packages.pycairo
+            # OCaml rewrite toolchain
+            ocaml
+            dune_3
+            ocamlPackages.cmdliner
+            ocamlPackages.xmlm
+            ocamlPackages.alcotest
+            ocamlPackages.findlib
           ];
 
           UV_PYTHON_DOWNLOADS = "never";
