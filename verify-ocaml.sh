@@ -85,6 +85,48 @@ nix "${NIXFLAGS[@]}" develop --command bash -c '
   echo "  > clean --help (should show --yes flag):"
   dune exec bin/main.exe -- clean --help 2>&1 | sed -n '1,30p'
 
+  echo
+  echo "--- 2e. integration smoke: gather + clean (no GoPro tools needed) ---"
+  # build the binary once so we can call it directly (avoids dune exec rebuild noise)
+  dune build bin/main.exe 2>&1
+  EXE="$PWD/_build/default/bin/main.exe"
+
+  T="$(mktemp -d)"
+  mkdir -p "$T/exported" "$T/sub"
+  printf x > "$T/sub/a.mp4"
+  printf y > "$T/b.JPG"
+  printf z > "$T/exported/keep.mp4"
+
+  echo "  > gather:"
+  "$EXE" gather "$T" 2>&1 | sed "s|$T|<T>|g"
+  copied="$(ls "$T/google_photos" 2>/dev/null | wc -l | tr -d " ")"
+  if [ "$copied" = "3" ]; then
+    echo "  [OK]   gather copied 3 files into google_photos/"
+  else
+    echo "  [FAIL] expected 3 files in google_photos/, found $copied"
+    status=1
+  fi
+
+  echo "  > clean --yes:"
+  "$EXE" clean --yes "$T" 2>&1 | sed "s|$T|<T>|g"
+  if [ -d "$T/exported" ]; then
+    echo "  [FAIL] exported/ still present after clean --yes"
+    status=1
+  else
+    echo "  [OK]   exported/ removed by clean --yes"
+  fi
+
+  echo "  > clean on dir with no exported/ (should be a no-op, exit 0):"
+  T2="$(mktemp -d)"
+  if "$EXE" clean "$T2" 2>&1 | sed "s|$T2|<T2>|g"; then
+    echo "  [OK]   clean no-op succeeded"
+  else
+    echo "  [FAIL] clean no-op returned nonzero"
+    status=1
+  fi
+
+  rm -rf "$T" "$T2"
+
   exit "$status"
 '
 rc=$?
