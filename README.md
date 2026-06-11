@@ -80,6 +80,24 @@
   python bin/set_date.py [ディレクトリへのパス]
   ```
 
+## OCaml CLI (`gopro`)
+上記のスクリプト群を 1 つのバイナリに書き直したもの。設計は
+`docs/superpowers/specs/2026-06-10-ocaml-rewrite-design.md` を参照。
+ビルド・実行は Nix devShell 内で行う:
+
+```shell
+nix develop --command dune build
+nix develop --command dune exec bin/main.exe -- --help
+```
+
+サブコマンド: `compress` / `overlay` / `overlay-all` / `gather` / `set-date` / `clean`。
+
+`extract/`・`dashboard/`・`.venv` を参照するコマンドには `--repo <dir>` を渡す（デフォルトはカレントディレクトリ）。
+
+破壊的なクリーンアップは自動では行わない。`exported/` の削除は `gopro clean <dir>` を明示的に実行する（`--yes` を付けない限り確認プロンプトが出る）。
+
+既存の bash / Python スクリプトは実機の動画で検証できるまで残してある。
+
 ## 圧縮率
 - 元動画: 144M
 - 圧縮後動画: 27M
