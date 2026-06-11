@@ -1,0 +1,4 @@
+(tests
+ (names test_gpx test_clip test_report test_proc)
+ (libraries gopro alcotest)
+ (deps (glob_files fixtures/*.gpx)))
