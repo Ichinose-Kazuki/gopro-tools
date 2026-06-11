@@ -79,14 +79,11 @@ nix "${NIXFLAGS[@]}" develop --command bash -c '
   fi
 
   echo
-  echo "--- 2d. run the CLI (try both exec names) ---"
-  if dune exec gopro -- --help 2>&1 | head -20; then
-    echo "  [OK]   ran via: dune exec gopro"
-  elif dune exec main -- --help 2>&1 | head -20; then
-    echo "  [OK]   ran via: dune exec main  (use this name in the plan)"
-  else
-    echo "  [INFO] CLI did not run (expected until subcommands are wired)"
-  fi
+  echo "--- 2d. run the CLI (dune exec bin/main.exe) ---"
+  echo "  > --help (should list all 6 subcommands):"
+  dune exec bin/main.exe -- --help 2>&1 | sed -n '1,40p'
+  echo "  > clean --help (should show --yes flag):"
+  dune exec bin/main.exe -- clean --help 2>&1 | sed -n '1,30p'
 
   exit "$status"
 '
