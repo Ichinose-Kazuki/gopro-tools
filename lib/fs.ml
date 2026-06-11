@@ -45,14 +45,23 @@ let clip_dirs ~dir : string list =
   |> List.filter (fun d ->
          entries d |> List.exists (fun f -> has_suffix_ci f ".gpx"))
 
-(* gather: all .mp4/.jpg files anywhere under dir, excluding the dest dir *)
+(* True if p is a symlink (do NOT descend these — avoids directory cycles). *)
+let is_symlink p =
+  try (Unix.lstat p).Unix.st_kind = Unix.S_LNK with Unix.Unix_error _ -> false
+
+(* gather: all .mp4/.jpg files anywhere under dir, excluding the dest dir.
+   Symlinked directories are not descended, so a cycle (e.g. sub -> ..) cannot
+   cause infinite recursion. *)
 let gather_targets ~dir ~dest : string list =
   let rec walk acc d =
     List.fold_left
       (fun acc name ->
         let p = Filename.concat d name in
-        if is_dir p then if p = dest then acc else walk acc p
-        else if has_suffix_ci p ".mp4" || has_suffix_ci p ".jpg" then p :: acc
+        if is_dir p && not (is_symlink p) then
+          if p = dest then acc else walk acc p
+        else if (not (is_dir p))
+                && (has_suffix_ci p ".mp4" || has_suffix_ci p ".jpg")
+        then p :: acc
         else acc)
       acc (entries d)
   in

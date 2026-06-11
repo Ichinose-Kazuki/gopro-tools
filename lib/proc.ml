@@ -28,23 +28,36 @@ let run ?cwd argv =
   | prog :: _ ->
     let out_r, out_w = Unix.pipe () in
     let err_r, err_w = Unix.pipe () in
-    let cwd_save = Unix.getcwd () in
-    (match cwd with Some d -> Unix.chdir d | None -> ());
-    let pid =
-      Unix.create_process prog (Array.of_list argv) Unix.stdin out_w err_w
+    (* Spawn while temporarily chdir'd to ~cwd. Any exception here (bad cwd,
+       missing program, EINTR) must not leak the four pipe fds nor escape the
+       Result model — close fds and map to Error.Command_failed. *)
+    let spawn () =
+      let cwd_save = Unix.getcwd () in
+      (match cwd with Some d -> Unix.chdir d | None -> ());
+      Fun.protect
+        ~finally:(fun () -> match cwd with Some _ -> Unix.chdir cwd_save | None -> ())
+        (fun () ->
+          Unix.create_process prog (Array.of_list argv) Unix.stdin out_w err_w)
     in
-    (match cwd with Some _ -> Unix.chdir cwd_save | None -> ());
-    Unix.close out_w;
-    Unix.close err_w;
-    let get = drain [ out_r; err_r ] in
-    let stdout = get out_r in
-    let stderr = get err_r in
-    Unix.close out_r;
-    Unix.close err_r;
-    let _, status = Unix.waitpid [] pid in
-    (match status with
-     | Unix.WEXITED 0 -> Ok stdout
-     | Unix.WEXITED code ->
-       Error (Error.Command_failed { argv; exit_code = code; stderr })
-     | Unix.WSIGNALED s | Unix.WSTOPPED s ->
-       Error (Error.Command_failed { argv; exit_code = 128 + s; stderr }))
+    (match spawn () with
+     | exception e ->
+       List.iter (fun fd -> try Unix.close fd with Unix.Unix_error _ -> ())
+         [ out_r; out_w; err_r; err_w ];
+       Error
+         (Error.Command_failed
+            { argv; exit_code = -1; stderr = Printexc.to_string e })
+     | pid ->
+       Unix.close out_w;
+       Unix.close err_w;
+       let get = drain [ out_r; err_r ] in
+       let stdout = get out_r in
+       let stderr = get err_r in
+       Unix.close out_r;
+       Unix.close err_r;
+       let _, status = Unix.waitpid [] pid in
+       (match status with
+        | Unix.WEXITED 0 -> Ok stdout
+        | Unix.WEXITED code ->
+          Error (Error.Command_failed { argv; exit_code = code; stderr })
+        | Unix.WSIGNALED s | Unix.WSTOPPED s ->
+          Error (Error.Command_failed { argv; exit_code = 128 + s; stderr })))
