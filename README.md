@@ -19,6 +19,19 @@
     - 設定はとりあえずデフォルト（滑らかさ: 50, トリミング速度: 50, レンズ補正: 0）
     - アスペクト比だけ 1:1 に修正する
 - 以下 Linux
+- 処理は OCaml 製の `gopro` バイナリ（サブコマンド方式）で行う。設計は `docs/superpowers/specs/2026-06-10-ocaml-rewrite-design.md` を参照。
+
+  まずビルド（Nix devShell 内）:
+
+  ```shell
+  nix develop --command dune build
+  ```
+
+  以下の例の `gopro` は、リポジトリのルートで実行する次のコマンドの略記とする（ルートで実行すれば `--repo` はカレントディレクトリに既定されるため省略できる）:
+
+  ```shell
+  nix develop --command dune exec bin/main.exe --
+  ```
 - （これはやらない）ディレクトリの中の全 MP4 ファイルの名前を撮影日時に変更
   
   [issue のコメント](https://github.com/time4tea/gopro-dashboard-overlay/issues/117#issuecomment-1464979791) によれば、録画ボタンを押して起動したときは `GPS never locked` エラーになる。たしかに ffprobe で見たときに `creation_time` の日時が明らかに撮影日時と異なる。
@@ -36,7 +49,7 @@
   動画サイズは横幅 1920 になる。
   
   ```shell
-  bash bin/compress.sh [ディレクトリへのパス]
+  gopro compress [ディレクトリへのパス]
   ```
 
   metadata ファイルの中に出てくるキー一覧
@@ -54,22 +67,22 @@
   
   gopro-rename のところで書いたことも合わせると、電源オフ状態から録画ボタンを押して起動 & 録画開始したときは、GPS がロックされず、位置情報が得られないということっぽい。
 
-  GPS がロックされている動画全部に対して実行
+  GPS がロックされている動画全部に対して実行（GPS 未ロックの動画は自動でスキップされる）
 
   ```shell
-  python bin/make-dashboard-all.py [ディレクトリへのパス]
+  gopro overlay-all [ディレクトリへのパス]
   ```
 
   または一つの動画のみに対して実行
 
   ```shell
-  bash bin/make-dashboard.sh [動画個別ディレクトリへのパス]
+  gopro overlay [動画個別ディレクトリへのパス]
   ```
 
 - Google Photos に保存する動画・画像を集める
 
   ```shell
-  python bin/gather_videos_photos.py [ディレクトリへのパス]
+  gopro gather [ディレクトリへのパス]
   ```
 
 - 動画の作成日時等を修正
@@ -77,26 +90,21 @@
   TOOD: 写真についてもやる。電源オフ状態から撮影ボタンを押して撮影されたと思われる写真は Create Date 等がデフォルト値だった。
 
   ```shell
-  python bin/set_date.py [ディレクトリへのパス]
+  gopro set-date [ディレクトリへのパス]
   ```
 
-## OCaml CLI (`gopro`)
-上記のスクリプト群を 1 つのバイナリに書き直したもの。設計は
-`docs/superpowers/specs/2026-06-10-ocaml-rewrite-design.md` を参照。
-ビルド・実行は Nix devShell 内で行う:
+- （任意）`exported/` ディレクトリを削除
 
-```shell
-nix develop --command dune build
-nix develop --command dune exec bin/main.exe -- --help
-```
+  圧縮処理では `exported/` を自動削除しない。元動画の削除は明示的にこのコマンドで行う（`--yes` を付けない限り確認プロンプトが出る）。
 
-サブコマンド: `compress` / `overlay` / `overlay-all` / `gather` / `set-date` / `clean`。
+  ```shell
+  gopro clean [ディレクトリへのパス]
+  ```
 
-`extract/`・`dashboard/`・`.venv` を参照するコマンドには `--repo <dir>` を渡す（デフォルトはカレントディレクトリ）。
-
-破壊的なクリーンアップは自動では行わない。`exported/` の削除は `gopro clean <dir>` を明示的に実行する（`--yes` を付けない限り確認プロンプトが出る）。
-
-既存の bash / Python スクリプトは実機の動画で検証できるまで残してある。
+### 補足
+- サブコマンド一覧と各オプションは `gopro --help` / `gopro <subcommand> --help` で確認できる。
+- `extract/`・`dashboard/`・`.venv` を参照するコマンド（`compress` / `overlay` / `overlay-all`）は、リポジトリのルート以外で実行する場合 `--repo <リポジトリのルート>` を渡す。
+- 旧 bash / Python スクリプト（`bin/*.sh`, `bin/*.py`）は実機の動画で `gopro` を検証できるまで残してある。
 
 ## 圧縮率
 - 元動画: 144M
