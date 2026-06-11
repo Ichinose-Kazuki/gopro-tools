@@ -104,7 +104,7 @@
 ### 補足
 - サブコマンド一覧と各オプションは `gopro --help` / `gopro <subcommand> --help` で確認できる。
 - `extract/`・`dashboard/`・`.venv` を参照するコマンド（`compress` / `overlay` / `overlay-all`）は、リポジトリのルート以外で実行する場合 `--repo <リポジトリのルート>` を渡す。
-- 旧 bash / Python スクリプト（`bin/*.sh`, `bin/*.py`）は実機の動画で `gopro` を検証できるまで残してある。
+- 旧 bash / Python スクリプト（`bin/compress.sh` など）は `gopro` に置き換えて削除済み。必要なら git 履歴から参照できる。
 
 ## 圧縮率
 - 元動画: 144M
